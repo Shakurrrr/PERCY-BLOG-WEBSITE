@@ -277,3 +277,4 @@ Unique Slugs: Utility in models to guarantee uniqueness with suffixes.
 Form UX: File upload preview for featured images; CKEditor upload widget for the body.
 
 License
+MIT
