@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: brand base text/bg to match your preset */
+:root {
+  /* example overrides if you want */
+}
+
+.prose img { border-radius: 0.75rem; }

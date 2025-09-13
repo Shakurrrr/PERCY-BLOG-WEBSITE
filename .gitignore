@@ -1,0 +1,33 @@
+@"
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+db.sqlite3
+.env
+.venv/
+venv/
+pytest_cache/
+.mypy_cache/
+coverage.xml
+htmlcov/
+
+# Django
+media/
+staticfiles/
+static/css/app.css  # built by Tailwind; keep if you won’t build in CI
+
+# Node
+node_modules/
+npm-debug.log*
+.yarn/*
+.pnpm-store/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+"@ | Set-Content .gitignore

@@ -1,0 +1,52 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}Blog CMS{% endblock %}</title>
+
+  <!-- Google Fonts to match your preset (Figtree + DM Sans) -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Compiled Tailwind -->
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" href="{% static 'favicon.ico' %}">
+</head>
+<body class="bg-white text-gray-900 font-sans">
+  <!-- NAVBAR -->
+  <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+    <div class="container flex items-center justify-between h-14">
+      <a href="{% url 'blog:post_list' %}" class="font-semibold tracking-tight">Blog CMS</a>
+
+      <form method="get" action="{% url 'blog:post_list' %}" class="hidden md:block w-80">
+        <input name="q" value="{{ request.GET.q }}" placeholder="Search posts"
+               class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"/>
+      </form>
+
+      <div class="flex items-center gap-3 text-sm">
+        <div class="relative group hidden md:block">
+          <button class="px-2 py-1 border rounded-md">Categories</button>
+          <div class="absolute right-0 mt-2 hidden group-hover:block bg-white rounded-xl shadow-md p-2 w-64">
+            {% for c in nav_categories %}
+              <a class="block px-2 py-1 rounded hover:bg-gray-100" href="{% url 'blog:post_by_category' slug=c.slug %}">{{ c.name }}</a>
+            {% empty %}<span class="block px-2 py-1 text-gray-400">None</span>{% endfor %}
+          </div>
+        </div>
+
+        {% if user.is_authenticated and perms.blog.add_post %}
+          <a href="{% url 'blog:post_create' %}" class="px-3 py-1 rounded-md bg-blue-600 text-white shadow-md">New Post</a>
+        {% endif %}
+        {% if user.is_authenticated %}
+          <span class="hidden sm:inline">Hi, {{ user.username }}</span>
+          <a href="{% url 'logout' %}" class="text-blue-600">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="text-blue-600">Login</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-6">{% block content %}{% endblock %}</main>
+</body>
+</html>

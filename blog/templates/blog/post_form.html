@@ -1,0 +1,72 @@
+<!-- templates/blog/post_form.html -->
+{% extends "base.html" %}
+{% block title %}{{ form.instance.pk|yesno:"Edit Post,New Post" }}{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow ring-1 ring-gray-200">
+  <h1 class="text-2xl font-semibold mb-4">{{ form.instance.pk|yesno:"Edit Post,New Post" }}</h1>
+
+  <form method="post" enctype="multipart/form-data">  <!-- critical -->
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div class="grid gap-4 sm:grid-cols-3">
+      <div class="sm:col-span-3">
+        {{ form.title.label_tag }}{{ form.title }}
+      </div>
+
+      <div class="sm:col-span-3">
+        {{ form.excerpt.label_tag }}{{ form.excerpt }}
+      </div>
+
+      <div>
+        {{ form.category.label_tag }}{{ form.category }}
+      </div>
+      <div>
+        {{ form.tags.label_tag }}{{ form.tags }}
+      </div>
+      <div>
+        {{ form.status.label_tag }}{{ form.status }}
+      </div>
+
+      <div class="sm:col-span-3">
+        {{ form.published_at.label_tag }}{{ form.published_at }}
+      </div>
+
+      <!-- Featured Image block -->
+      <div class="sm:col-span-3 space-y-2">
+        <label class="block text-sm font-medium">Featured image</label>
+        {{ form.featured_image }}  <!-- ClearableFileInput renders current file + 'clear' checkbox on edit -->
+        {% if form.instance.featured_image %}
+          <div class="mt-2">
+            <img src="{{ form.instance.featured_image.url }}" alt="Current image" class="max-h-48 rounded">
+          </div>
+        {% endif %}
+        <img id="preview" class="mt-2 max-h-48 rounded hidden" />
+      </div>
+
+      <div class="sm:col-span-3">
+        {{ form.body.label_tag }}{{ form.body }}
+      </div>
+    </div>
+
+    <div class="mt-6 flex gap-3">
+      <button class="px-4 py-2 bg-blue-600 text-white rounded-md">Save</button>
+      <a href="{% url 'blog:post_list' %}" class="px-4 py-2 border rounded-md">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<script>
+  const input = document.getElementById("id_featured_image");
+  const preview = document.getElementById("preview");
+  if (input) {
+    input.addEventListener("change", e => {
+      const [file] = e.target.files || [];
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove("hidden");
+      }
+    });
+  }
+</script>
+{% endblock %}
