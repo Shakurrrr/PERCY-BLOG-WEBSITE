@@ -1,7 +1,11 @@
-# Exclude compiled CSS/artefacts from language stats
-static/css/* linguist-generated
-assets/*.map linguist-generated
-*.min.css    linguist-generated
+# Ignore generated/static assets in language stats
+static/**                linguist-generated
+assets/**                linguist-generated
+**/*.min.js              linguist-generated
+**/*.min.css             linguist-generated
+**/*.map                 linguist-generated
 
-# If you keep design tokens or raw CSS that you don’t want counted:
-assets/*.css linguist-vendored
+# Treat tool configs as vendored (excluded)
+tailwind.config.js       linguist-vendored
+postcss.config.js        linguist-vendored
+ui.preset.js             linguist-vendored
