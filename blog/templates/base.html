@@ -6,47 +6,168 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>{% block title %}Blog CMS{% endblock %}</title>
 
-  <!-- Google Fonts to match your preset (Figtree + DM Sans) -->
+  <!-- Brand fonts (optional) -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Compiled Tailwind -->
+  <!-- Tailwind build -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="icon" href="{% static 'favicon.ico' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-white text-gray-900 font-sans">
-  <!-- NAVBAR -->
-  <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
-    <div class="container flex items-center justify-between h-14">
-      <a href="{% url 'blog:post_list' %}" class="font-semibold tracking-tight">Blog CMS</a>
 
-      <form method="get" action="{% url 'blog:post_list' %}" class="hidden md:block w-80">
-        <input name="q" value="{{ request.GET.q }}" placeholder="Search posts"
-               class="w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500"/>
-      </form>
-
-      <div class="flex items-center gap-3 text-sm">
-        <div class="relative group hidden md:block">
-          <button class="px-2 py-1 border rounded-md">Categories</button>
-          <div class="absolute right-0 mt-2 hidden group-hover:block bg-white rounded-xl shadow-md p-2 w-64">
-            {% for c in nav_categories %}
-              <a class="block px-2 py-1 rounded hover:bg-gray-100" href="{% url 'blog:post_by_category' slug=c.slug %}">{{ c.name }}</a>
-            {% empty %}<span class="block px-2 py-1 text-gray-400">None</span>{% endfor %}
+  <!-- ===== Top Bar (Aviatrix-like) ===== -->
+  <header class="sticky top-0 z-50 bg-black text-white border-b border-white/10">
+    <div class="container h-14 flex items-center justify-between">
+      <!-- Left: Search icon + Brand -->
+      <div class="flex items-center gap-4">
+        <!-- Search trigger routes to list with q= -->
+        <form method="get" action="{% url 'blog:post_list' %}" class="hidden sm:block">
+          <label class="sr-only" for="global-search">Search</label>
+          <div class="flex items-center gap-2 text-white/80">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65" stroke-width="2"></line>
+            </svg>
+            <input id="global-search" name="q" value="{{ request.GET.q|default:'' }}"
+                   placeholder="Search posts"
+                   class="bg-transparent text-sm placeholder-white/40 text-white/90 border border-white/15 rounded-md px-2 py-1
+                          focus:ring-1 focus:ring-white/30 focus:outline-none w-56"/>
           </div>
-        </div>
+        </form>
 
+        <!-- Brand (orange mark + wordmark) -->
+        <a href="{% url 'blog:post_list' %}" class="flex items-center gap-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" class="text-orange-500" fill="currentColor" aria-hidden="true">
+            <path d="M12 3L22 21H2L12 3z"></path>
+          </svg>
+          <span class="font-semibold tracking-wide text-white">BLOG CMS</span>
+        </a>
+      </div>
+
+      <!-- Center: Primary nav (uppercase, spaced) -->
+      <nav class="hidden lg:block">
+        <ul class="flex items-center gap-10 text-[13px] font-semibold">
+          <li><a href="{% url 'blog:post_list' %}" class="text-white hover:text-white/80">Home</a></li>
+
+          <!-- Categories (mega-ish dropdown) -->
+          <li>
+            <details class="group relative">
+              <summary class="list-none cursor-pointer text-white hover:text-white/80">
+                Categories
+              </summary>
+              <div class="absolute left-1/2 -translate-x-1/2 mt-3 w-[720px] max-w-[90vw]
+                          bg-neutral-900 border border-white/10 rounded-xl shadow-xl p-4 grid grid-cols-3 gap-2">
+                {% for c in nav_categories|slice:":9" %}
+                  <a href="{% url 'blog:post_by_category' slug=c.slug %}"
+                     class="px-3 py-2 rounded-md text-white/90 hover:bg-white/5 border border-white/5">
+                    {{ c.name }}
+                  </a>
+                {% empty %}
+                  <div class="text-white/50 col-span-3 px-3 py-2">No categories yet</div>
+                {% endfor %}
+              </div>
+            </details>
+          </li>
+
+          <!-- Tags (compact dropdown) -->
+          <li>
+            <details class="group relative">
+              <summary class="list-none cursor-pointer text-white hover:text-white/80">
+                Tags
+              </summary>
+              <div class="absolute left-1/2 -translate-x-1/2 mt-3 w-[520px] max-w-[90vw]
+                          bg-neutral-900 border border-white/10 rounded-xl shadow-xl p-3 flex flex-wrap gap-2">
+                {% for t in nav_tags|slice:":24" %}
+                  <a href="{% url 'blog:post_by_tag' slug=t.slug %}"
+                     class="px-2 py-1 text-xs rounded-full bg-white/10 text-white/90 hover:bg-white/20">
+                    #{{ t.name }}
+                  </a>
+                {% empty %}
+                  <div class="text-white/50 px-2 py-1">No tags yet</div>
+                {% endfor %}
+              </div>
+            </details>
+          </li>
+
+          <li><a href="#" class="text-white/70 hover:text-white">About</a></li>
+        </ul>
+      </nav>
+
+      <!-- Right: Auth / Avatar -->
+      <div class="flex items-center gap-3">
         {% if user.is_authenticated and perms.blog.add_post %}
-          <a href="{% url 'blog:post_create' %}" class="px-3 py-1 rounded-md bg-blue-600 text-white shadow-md">New Post</a>
+          <a href="{% url 'blog:post_create' %}"
+             class="hidden sm:inline-flex items-center px-3 py-1 rounded-md bg-orange-500 text-black font-semibold">
+            New Post
+          </a>
         {% endif %}
+
         {% if user.is_authenticated %}
-          <span class="hidden sm:inline">Hi, {{ user.username }}</span>
-          <a href="{% url 'logout' %}" class="text-blue-600">Logout</a>
+          <!-- Avatar dropdown via <details> (no JS) -->
+          <details class="relative">
+            <summary class="list-none cursor-pointer">
+              <div class="h-9 w-9 rounded-full bg-white/10 grid place-items-center text-white font-semibold">
+                {{ user.username|first|upper }}
+              </div>
+            </summary>
+            <div class="absolute right-0 mt-3 w-48 bg-neutral-900 border border-white/10 rounded-xl shadow-xl p-2">
+              <div class="px-3 py-2 text-xs text-white/60">Signed in as<br><span class="text-white">{{ user.username }}</span></div>
+              <div class="h-px bg-white/10 my-1"></div>
+              <a href="{% url 'blog:post_list' %}" class="block px-3 py-2 rounded-md text-white/90 hover:bg-white/5">Dashboard</a>
+              {% if perms.blog.add_post %}
+                <a href="{% url 'blog:post_create' %}" class="block px-3 py-2 rounded-md text-white/90 hover:bg-white/5">New Post</a>
+              {% endif %}
+              <div class="h-px bg-white/10 my-1"></div>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-left px-3 py-2 rounded-md text-red-300 hover:bg-white/5">
+                  Logout
+                </button>
+              </form>
+            </div>
+          </details>
         {% else %}
-          <a href="{% url 'login' %}" class="text-blue-600">Login</a>
+          <a href="{% url 'login' %}" class="text-white/80 hover:text-white text-sm">Login</a>
+          <a href="{% url 'blog:signup' %}" class="hidden sm:inline-block text-sm text-black bg-white px-3 py-1 rounded-md">
+            Sign up
+          </a>
         {% endif %}
       </div>
     </div>
-  </nav>
 
-  <main class="container py-6">{% block content %}{% endblock %}</main>
+    <!-- Mobile search (below bar) -->
+    <div class="container py-2 lg:hidden">
+      <form method="get" action="{% url 'blog:post_list' %}">
+        <input name="q" value="{{ request.GET.q|default:'' }}"
+               placeholder="Search posts"
+               class="w-full rounded-md border border-white/15 bg-neutral-900 text-white placeholder-white/40
+                      focus:ring-1 focus:ring-white/30 px-3 py-2"/>
+      </form>
+    </div>
+  </header>
+
+  <!-- Flash messages -->
+  {% if messages %}
+    <div class="container mt-4 space-y-2">
+      {% for message in messages %}
+        <div class="rounded-md border px-3 py-2
+                    {% if message.tags == 'success' %}border-emerald-300 bg-emerald-50 text-emerald-900
+                    {% elif message.tags == 'error' %}border-red-300 bg-red-50 text-red-900
+                    {% elif message.tags == 'warning' %}border-amber-300 bg-amber-50 text-amber-900
+                    {% else %}border-gray-300 bg-gray-50 text-gray-900{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Page content -->
+  <main class="container py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block extra_body %}{% endblock %}
 </body>
 </html>
