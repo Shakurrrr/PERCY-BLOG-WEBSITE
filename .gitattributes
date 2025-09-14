@@ -1,0 +1,7 @@
+# Exclude compiled CSS/artefacts from language stats
+static/css/* linguist-generated
+assets/*.map linguist-generated
+*.min.css    linguist-generated
+
+# If you keep design tokens or raw CSS that you don’t want counted:
+assets/*.css linguist-vendored
