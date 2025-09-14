@@ -4,6 +4,14 @@ A production-grade, opinionated **blog/CMS** built on **Django 5**, with role-ba
 
 ---
 
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/Django-5.x-092E20?logo=django&logoColor=white" alt="Django 5.x">
+  <img src="https://img.shields.io/badge/Tailwind%20CSS-3.x-38B2AC?logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/License-MIT-informational" alt="License MIT">
+</p>
+
+
 ## Table of Contents
 - [Features](#features)
 - [Tech Stack](#tech-stack)
