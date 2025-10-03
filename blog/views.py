@@ -9,7 +9,24 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import SignupForm
 from django.shortcuts import render, redirect
-import os, meilisearch 
+import os, meilisearch
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.conf import settings
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .serializers import MyTokenObtainPairSerializer
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .permissions import IsAuthorOrReadOnly
+from .models import Post
+from .serializers import PostSerializer
+
+
 
 def _published_qs():
     return Post.objects.filter(status=Post.Status.PUBLISHED)
@@ -106,3 +123,60 @@ def signup(request):
         login(request, user)
         return redirect("blog:post_list")
     return render(request, "registration/signup.html", {"form": form})
+
+# JWT with cookies
+
+class CookieLogin(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        u = authenticate(
+            request,
+            username=request.data.get("username"),
+            password=request.data.get("password"),
+        )
+        if not u:
+            return Response({"detail": "Invalid credentials"}, status=400)
+
+        refresh = RefreshToken.for_user(u)
+        access = str(refresh.access_token)
+
+        resp = Response({"detail": "ok"})
+        # set cookies
+        resp.set_cookie(
+            "access_token", access,
+            max_age=15*60, httponly=True, secure=not settings.DEBUG,
+            samesite="Lax", path="/"
+        )
+        resp.set_cookie(
+            "refresh_token", str(refresh),
+            max_age=7*24*3600, httponly=True, secure=not settings.DEBUG,
+            samesite="Lax", path="/api/auth/"
+        )
+        return resp
+
+class CookieLogout(APIView):
+    def post(self, request):
+        resp = Response({"detail": "logged out"})
+        resp.delete_cookie("access_token", path="/")
+        resp.delete_cookie("refresh_token", path="/api/auth/")
+        return resp
+    
+
+  
+class MyTokenObtainPairView(TokenObtainPairView):
+     serializer_class = MyTokenObtainPairSerializer
+
+
+
+class PostViewSet(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+class PostViewSet(ModelViewSet):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)

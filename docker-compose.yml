@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # pull your env as needed; keep secrets out of the image
+      DJANGO_SETTINGS_MODULE: blogsite.settings
+      DEBUG: "1"
+    volumes:
+      - .:/app:delegated
+    # No 'version:' key; let Compose v2 infer

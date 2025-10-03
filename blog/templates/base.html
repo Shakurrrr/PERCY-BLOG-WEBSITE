@@ -6,23 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>{% block title %}Blog CMS{% endblock %}</title>
 
-  <!-- Brand fonts (optional) -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Tailwind build -->
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="icon" href="{% static 'favicon.ico' %}">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-white text-gray-900 font-sans">
 
-  <!-- ===== Top Bar (Aviatrix-like) ===== -->
+  <!-- ===== Top Bar ===== -->
   <header class="sticky top-0 z-50 bg-black text-white border-b border-white/10">
     <div class="container h-14 flex items-center justify-between">
-      <!-- Left: Search icon + Brand -->
+      <!-- Left: Search + Brand -->
       <div class="flex items-center gap-4">
-        <!-- Search trigger routes to list with q= -->
+        <!-- Search goes to the blog list -->
         <form method="get" action="{% url 'blog:post_list' %}" class="hidden sm:block">
           <label class="sr-only" for="global-search">Search</label>
           <div class="flex items-center gap-2 text-white/80">
@@ -37,26 +35,30 @@
           </div>
         </form>
 
-        <!-- Brand (orange mark + wordmark) -->
-        <a href="{% url 'blog:post_list' %}" class="flex items-center gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" class="text-orange-500" fill="currentColor" aria-hidden="true">
-            <path d="M12 3L22 21H2L12 3z"></path>
-          </svg>
+        <!-- Brand links to the landing 'home' -->
+        <a href="{% url 'home' %}" class="flex items-center gap-2">
+          <img
+            src="{% static 'img/logo2.svg' %}"
+            alt="Blog CMS"
+            class="h-12 w-auto block"
+            decoding="async"
+            loading="eager"
+          />
           <span class="font-semibold tracking-wide text-white">BLOG CMS</span>
         </a>
       </div>
 
-      <!-- Center: Primary nav (uppercase, spaced) -->
+      <!-- Primary nav -->
       <nav class="hidden lg:block">
         <ul class="flex items-center gap-10 text-[13px] font-semibold">
-          <li><a href="{% url 'blog:post_list' %}" class="text-white hover:text-white/80">Home</a></li>
+          <li><a href="{% url 'home' %}" class="text-white hover:text-white/80">Home</a></li>
+          <li><a href="{% url 'blog:post_list' %}" class="text-white hover:text-white/80">Blog</a></li>
 
-          <!-- Categories (mega-ish dropdown) -->
+          {% if request.resolver_match and request.resolver_match.namespace == 'blog' %}
+          <!-- Show these only on blog pages -->
           <li>
             <details class="group relative">
-              <summary class="list-none cursor-pointer text-white hover:text-white/80">
-                Categories
-              </summary>
+              <summary class="list-none cursor-pointer text-white hover:text-white/80">Categories</summary>
               <div class="absolute left-1/2 -translate-x-1/2 mt-3 w-[720px] max-w-[90vw]
                           bg-neutral-900 border border-white/10 rounded-xl shadow-xl p-4 grid grid-cols-3 gap-2">
                 {% for c in nav_categories|slice:":9" %}
@@ -71,12 +73,9 @@
             </details>
           </li>
 
-          <!-- Tags (compact dropdown) -->
           <li>
             <details class="group relative">
-              <summary class="list-none cursor-pointer text-white hover:text-white/80">
-                Tags
-              </summary>
+              <summary class="list-none cursor-pointer text-white hover:text-white/80">Tags</summary>
               <div class="absolute left-1/2 -translate-x-1/2 mt-3 w-[520px] max-w-[90vw]
                           bg-neutral-900 border border-white/10 rounded-xl shadow-xl p-3 flex flex-wrap gap-2">
                 {% for t in nav_tags|slice:":24" %}
@@ -90,6 +89,7 @@
               </div>
             </details>
           </li>
+          {% endif %}
 
           <li><a href="#" class="text-white/70 hover:text-white">About</a></li>
         </ul>
@@ -105,7 +105,6 @@
         {% endif %}
 
         {% if user.is_authenticated %}
-          <!-- Avatar dropdown via <details> (no JS) -->
           <details class="relative">
             <summary class="list-none cursor-pointer">
               <div class="h-9 w-9 rounded-full bg-white/10 grid place-items-center text-white font-semibold">
@@ -163,7 +162,6 @@
     </div>
   {% endif %}
 
-  <!-- Page content -->
   <main class="container py-8">
     {% block content %}{% endblock %}
   </main>
