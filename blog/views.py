@@ -180,3 +180,9 @@ class PostViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+def landing(request):
+    latest_posts = Post.objects.published().order_by("-published_at")[:6] \
+        if hasattr(Post.objects, "published") else Post.objects.filter(status="published").order_by("-published_at")[:6]
+    return render(request, "landing.html", {"latest_posts": latest_posts})

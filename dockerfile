@@ -18,5 +18,5 @@ COPY . .
 RUN printf '#!/bin/sh\nset -e\npython manage.py migrate --noinput\npython manage.py runserver 0.0.0.0:8000\n' > /entrypoint.sh \
  && chmod +x /entrypoint.sh
 
-EXPOSE 8000
+EXPOSE 8080
 CMD ["/entrypoint.sh"]
