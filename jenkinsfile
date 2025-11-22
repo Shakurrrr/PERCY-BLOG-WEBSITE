@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+        IMAGE_NAME = "shehu98/percy-blog-website"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Shakurrrr/PERCY-BLOG-WEBSITE.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
+                sh 'docker tag $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest'
+                sh 'docker push $IMAGE_NAME:latest'
+            }
+        }
+
+        stage('Clean Workspace') {
+            steps {
+                sh 'docker system prune -f'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Deployment Successful! Image pushed as $IMAGE_NAME:$BUILD_NUMBER"
+        }
+        failure {
+            echo "❌ Pipeline Failed. Check logs."
+        }
+    }
+}
