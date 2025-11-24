@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
+        DOCKERHUB_CREDENTIALS = credentials('ef6967c5-bfa5-48ad-a531-930eb9a5f9c4')
         IMAGE_NAME = "shehu98/percy-blog-website"
     }
 
@@ -15,7 +15,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                sh 'docker build -t $IMAGE_NAME:${BUILD_NUMBER} .'
             }
         }
 
@@ -27,22 +27,20 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
-                sh 'docker tag $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest'
-                sh 'docker push $IMAGE_NAME:latest'
+                sh 'docker push $IMAGE_NAME:${BUILD_NUMBER}'
             }
         }
 
         stage('Clean Workspace') {
             steps {
-                sh 'docker system prune -f'
+                cleanWs()
             }
         }
     }
 
     post {
         success {
-            echo "✅ Deployment Successful! Image pushed as $IMAGE_NAME:$BUILD_NUMBER"
+            echo "✅ Pipeline completed successfully and image pushed to DockerHub!"
         }
         failure {
             echo "❌ Pipeline Failed. Check logs."
