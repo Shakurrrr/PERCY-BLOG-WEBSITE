@@ -31,6 +31,19 @@ pipeline {
             }
         }
 
+        stage('Deploy with Ansible') {
+            steps {
+                sshagent(['ansible_ssh_key']) {
+                    sh '''
+                    ansible-playbook \
+                      -i /home/shakur/inventory.ini \
+                      /home/shakur/install-nginx.yaml \
+                      --become --become-user=root --become-method=sudo
+                    '''
+                }
+            }
+        }
+
         stage('Clean Workspace') {
             steps {
                 cleanWs()
@@ -40,7 +53,7 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline completed successfully and image pushed to DockerHub!"
+            echo "✅ Pipeline completed successfully: Docker image pushed and Ansible deployment triggered!"
         }
         failure {
             echo "❌ Pipeline Failed. Check logs."
