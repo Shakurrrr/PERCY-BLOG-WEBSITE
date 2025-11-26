@@ -1,0 +1,25 @@
+---
+- name: Deploy Percy Blog Website
+  hosts: all
+  become: yes
+  become_user: root
+  tasks:
+    - name: Pull latest Docker image from DockerHub
+      community.docker.docker_image:
+        name: shakurrrr/percy_blog_website
+        tag: latest
+        source: pull
+
+    - name: Stop old running container (if exists)
+      community.docker.docker_container:
+        name: percy_blog
+        state: absent
+
+    - name: Run new container from the latest image
+      community.docker.docker_container:
+        name: percy_blog
+        image: shakurrrr/percy_blog_website:latest
+        ports:
+          - "8000:8000"
+        restart_policy: always
+
