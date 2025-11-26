@@ -4,8 +4,8 @@ pipeline {
     environment {
         DOCKERHUB_CREDENTIALS = credentials('ef6967c5-bfa5-48ad-a531-930eb9a5f9c4')
         IMAGE_NAME = "shehu98/percy-blog-website"
-        ANSIBLE_INVENTORY = "/home/shakur/inventory.ini"
-        ANSIBLE_PLAYBOOK = "/home/shakur/install-nginx.yaml"
+        ANSIBLE_INVENTORY = "/home/shakur/ansible-deployments/inventory.ini"
+        ANSIBLE_PLAYBOOK = "/home/shakur/ansible-deployments/deploy-blog.yaml"
     }
 
     stages {
@@ -19,7 +19,10 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "🐳 Building Docker image..."
-                sh 'docker build -t $IMAGE_NAME:${BUILD_NUMBER} .'
+                sh '''
+                    docker build -t $IMAGE_NAME:${BUILD_NUMBER} .
+                    docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest
+                '''
             }
         }
 
@@ -33,18 +36,22 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 echo "🚀 Pushing Docker image to DockerHub..."
-                sh 'docker push $IMAGE_NAME:${BUILD_NUMBER}'
+                sh '''
+                    docker push $IMAGE_NAME:${BUILD_NUMBER}
+                    docker push $IMAGE_NAME:latest
+                '''
             }
         }
 
         stage('Deploy with Ansible') {
             steps {
-                echo "⚙️ Deploying with Ansible..."
+                echo "⚙️ Deploying Percy Blog via Ansible..."
                 sshagent(['ansible_ssh_key']) {
                     sh '''
                         ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK \
                         --become --become-user=root --become-method=sudo
                     '''
+                    echo "✅ Deployment successful!"
                 }
             }
         }
@@ -59,10 +66,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline completed successfully! Docker image pushed and Ansible deployment done."
+            echo "✅ Pipeline completed successfully! Image built, pushed, and deployed."
         }
         failure {
-            echo "❌ Pipeline failed. Check Jenkins logs for details."
+            echo "❌ Pipeline failed. Check logs for details."
         }
     }
 }
