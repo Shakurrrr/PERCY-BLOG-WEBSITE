@@ -18,7 +18,7 @@ urlpatterns = [
     path("", views.post_list, name="post_list"),
     path("api/me/", Me.as_view()),
 
-    # Specific routes FIRST
+    # most important route FIRST
     path("post/create/", views.post_create, name="post_create"),
     path("post/<slug:slug>/edit/", views.post_edit, name="post_edit"),
     path("post/<slug:slug>/delete/", views.post_delete, name="post_delete"),
