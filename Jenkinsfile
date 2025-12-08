@@ -37,6 +37,7 @@ pipeline {
             steps {
                 script {
                     IMAGE_TAG = "v${BUILD_NUMBER}"
+                    env.IMAGE_TAG = IMAGE_TAG
                 }
                 sh '''
                     docker build -t ${ECR_REPO}:${IMAGE_TAG} .
