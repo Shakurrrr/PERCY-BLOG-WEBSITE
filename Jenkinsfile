@@ -1,51 +1,80 @@
 pipeline {
     agent any
-
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds')
-        IMAGE_NAME = "shehu98/percy-blog-website"
+        AWS_DEFAULT_REGION = "eu-north-1"
+        ECR_REPO = "<AWS_ACCOUNT_ID>.dkr.ecr.eu-north-1.amazonaws.com/percy-blog"
+        GITOPS_REPO = "https://github.com/Shakurrrr/gitops-blog-deploy.git"
+        GITOPS_DIR = "gitops-blog-deploy/k8s"
     }
-
     stages {
-        stage('Checkout') {
+
+        stage('Checkout App Repo') {
             steps {
                 git branch: 'main', url: 'https://github.com/Shakurrrr/PERCY-BLOG-WEBSITE.git'
             }
         }
 
+        stage('Login to AWS ECR') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-creds',
+                    usernameVariable: 'AWS_KEY',
+                    passwordVariable: 'AWS_SECRET'
+                )]) {
+                    sh '''
+                    aws configure set aws_access_key_id $AWS_KEY
+                    aws configure set aws_secret_access_key $AWS_SECRET
+                    aws configure set default.region ${AWS_DEFAULT_REGION}
+
+                    aws ecr get-login-password --region eu-north-1 | \
+                      docker login --username AWS --password-stdin ${ECR_REPO}
+                    '''
+                }
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
+                script {
+                    IMAGE_TAG = "v${BUILD_NUMBER}"
+                }
+                sh '''
+                    docker build -t ${ECR_REPO}:${IMAGE_TAG} .
+                '''
             }
         }
 
-        stage('Login to DockerHub') {
+        stage('Push to ECR') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                sh '''
+                    docker push ${ECR_REPO}:${IMAGE_TAG}
+                '''
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Update GitOps repo') {
             steps {
-                sh 'docker push $IMAGE_NAME:$BUILD_NUMBER'
-                sh 'docker tag $IMAGE_NAME:$BUILD_NUMBER $IMAGE_NAME:latest'
-                sh 'docker push $IMAGE_NAME:latest'
-            }
-        }
+                sh '''
+                rm -rf gitops-blog-deploy
+                git clone ${GITOPS_REPO}
 
-        stage('Clean Workspace') {
-            steps {
-                sh 'docker system prune -f'
+                sed -i "s|image:.*|image: ${ECR_REPO}:${IMAGE_TAG}|" \
+                    ${GITOPS_DIR}/deployment.yaml
+
+                cd gitops-blog-deploy
+                git config user.email "jenkins@ci.com"
+                git config user.name "Jenkins CI"
+                git add .
+                git commit -m "Deploy ${IMAGE_TAG}"
+                git push
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✅ Deployment Successful! Image pushed as $IMAGE_NAME:$BUILD_NUMBER"
-        }
-        failure {
-            echo "❌ Pipeline Failed. Check logs for the actual."
+            echo "🎉 Deployment sent to GitOps → ArgoCD → EKS"
         }
     }
 }
