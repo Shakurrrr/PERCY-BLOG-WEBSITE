@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         AWS_DEFAULT_REGION = "eu-north-1"
-        ECR_REPO = "<AWS_ACCOUNT_ID>.dkr.ecr.eu-north-1.amazonaws.com/percy-blog"
+        ECR_REPO = "559938827680.dkr.ecr.eu-north-1.amazonaws.com/percy-blog"
         GITOPS_REPO = "https://github.com/Shakurrrr/gitops-blog-deploy.git"
         GITOPS_DIR = "gitops-blog-deploy/k8s"
     }
