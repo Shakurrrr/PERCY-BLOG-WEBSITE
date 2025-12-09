@@ -1,11 +1,13 @@
 pipeline {
     agent any
+
     environment {
         AWS_DEFAULT_REGION = "eu-north-1"
         ECR_REPO = "559938827680.dkr.ecr.eu-north-1.amazonaws.com/percy-blog"
         GITOPS_REPO = "https://github.com/Shakurrrr/gitops-blog-deploy.git"
         GITOPS_DIR = "gitops-blog-deploy/k8s"
     }
+
     stages {
 
         stage('Checkout App Repo') {
@@ -22,12 +24,12 @@ pipeline {
                     passwordVariable: 'AWS_SECRET'
                 )]) {
                     sh '''
-                    aws configure set aws_access_key_id $AWS_KEY
-                    aws configure set aws_secret_access_key $AWS_SECRET
-                    aws configure set default.region ${AWS_DEFAULT_REGION}
+                        aws configure set aws_access_key_id $AWS_KEY
+                        aws configure set aws_secret_access_key $AWS_SECRET
+                        aws configure set default.region ${AWS_DEFAULT_REGION}
 
-                    aws ecr get-login-password --region eu-north-1 | \
-                      docker login --username AWS --password-stdin ${ECR_REPO}
+                        aws ecr get-login-password --region eu-north-1 | \
+                        docker login --username AWS --password-stdin ${ECR_REPO}
                     '''
                 }
             }
@@ -39,8 +41,13 @@ pipeline {
                     IMAGE_TAG = "v${BUILD_NUMBER}"
                     env.IMAGE_TAG = IMAGE_TAG
                 }
+
                 sh '''
-                    docker build -t ${ECR_REPO}:${IMAGE_TAG} .
+                    # Prevent Docker Buildx manifest errors
+                    docker buildx rm builder || true
+
+                    # Force normal amd64 build (required for ECR)
+                    docker build --platform linux/amd64 -t ${ECR_REPO}:${IMAGE_TAG} .
                 '''
             }
         }
@@ -56,18 +63,19 @@ pipeline {
         stage('Update GitOps repo') {
             steps {
                 sh '''
-                rm -rf gitops-blog-deploy
-                git clone ${GITOPS_REPO}
+                    rm -rf gitops-blog-deploy
+                    git clone ${GITOPS_REPO}
 
-                sed -i "s|image:.*|image: ${ECR_REPO}:${IMAGE_TAG}|" \
-                    ${GITOPS_DIR}/deployment.yaml
+                    # Update image tag inside deployment.yaml
+                    sed -i "s|image:.*|image: ${ECR_REPO}:${IMAGE_TAG}|" \
+                        ${GITOPS_DIR}/deployment.yaml
 
-                cd gitops-blog-deploy
-                git config user.email "jenkins@ci.com"
-                git config user.name "Jenkins CI"
-                git add .
-                git commit -m "Deploy ${IMAGE_TAG}"
-                git push
+                    cd gitops-blog-deploy
+                    git config user.email "jenkins@ci.com"
+                    git config user.name "Jenkins CI"
+                    git add .
+                    git commit -m "Deploy ${IMAGE_TAG}"
+                    git push
                 '''
             }
         }
