@@ -42,8 +42,7 @@ pipeline {
                 }
 
                 sh '''
-                    docker build \
-                      --platform linux/amd64 \
+                    docker build --platform linux/amd64 \
                       -t ${ECR_REPO}:${IMAGE_TAG} .
                 '''
             }
@@ -57,16 +56,17 @@ pipeline {
             }
         }
 
-        stage('Update GitOps Repo') {
+        stage('Update GitOps repo') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'github-creds',
-                    usernameVariable: 'GH_USER',
-                    passwordVariable: 'GH_TOKEN'
+                    credentialsId: 'github-pat',
+                    usernameVariable: 'GIT_USER',
+                    passwordVariable: 'GIT_TOKEN'
                 )]) {
+
                     sh '''
                         rm -rf gitops-blog-deploy
-                        git clone https://${GH_USER}:${GH_TOKEN}@github.com/Shakurrrr/gitops-blog-deploy.git
+                        git clone https://$GIT_USER:$GIT_TOKEN@github.com/Shakurrrr/gitops-blog-deploy.git
 
                         sed -i "s|image:.*|image: ${ECR_REPO}:${IMAGE_TAG}|" \
                             ${GITOPS_DIR}/deployment.yaml
@@ -74,10 +74,9 @@ pipeline {
                         cd gitops-blog-deploy
                         git config user.email "jenkins@ci.com"
                         git config user.name "Jenkins CI"
-
                         git add .
-                        git commit -m "Deploy ${IMAGE_TAG}" || echo "No changes to commit"
-                        git push
+                        git commit -m "Deploy ${IMAGE_TAG}"
+                        git push https://$GIT_USER:$GIT_TOKEN@github.com/Shakurrrr/gitops-blog-deploy.git
                     '''
                 }
             }
@@ -86,10 +85,10 @@ pipeline {
 
     post {
         success {
-            echo "🚀 GitOps update complete → ArgoCD syncing → EKS deploying."
+            echo "🎉 GitOps updated → ArgoCD will deploy ${IMAGE_TAG} → EKS"
         }
         failure {
-            echo "❌ Build failed. Check console output."
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
