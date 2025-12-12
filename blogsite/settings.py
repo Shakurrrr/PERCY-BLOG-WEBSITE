@@ -31,7 +31,8 @@ SECRET_KEY = 'django-insecure-x6lk8u^78=1qtni!wq10uc61+9b#awo8v50uo7!ubp#d&k39!q
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "percyblog.local"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "percyblog.local", "a0fadd6c3258c40d7b0468315df8ae74-1383589967.eu-north-1.elb.amazonaws.com"]
+
 
 
 # Application definition
