@@ -9,7 +9,7 @@ from django.contrib.auth import login
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import SignupForm
 from django.shortcuts import render, redirect
-import os, meilisearch
+import os
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status

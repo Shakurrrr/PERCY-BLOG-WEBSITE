@@ -29,9 +29,9 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-not-secure")
 SECRET_KEY = 'django-insecure-x6lk8u^78=1qtni!wq10uc61+9b#awo8v50uo7!ubp#d&k39!q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", "percyblog.local", "a0fadd6c3258c40d7b0468315df8ae74-1383589967.eu-north-1.elb.amazonaws.com"]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "13.53.106.175", "percyblog.local", "a0fadd6c3258c40d7b0468315df8ae74-1383589967.eu-north-1.elb.amazonaws.com"]
 
 
 
