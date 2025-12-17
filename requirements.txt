@@ -8,3 +8,5 @@ boto3
 python-dotenv
 dj-database-url
 requests
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
