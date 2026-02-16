@@ -5,7 +5,7 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector
 
-# Create your models here.
+# My model being created here.
 class TimeStampedModel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
