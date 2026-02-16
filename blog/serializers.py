@@ -17,10 +17,7 @@ from .models import Post  # <-- make sure this model exists
 
 class PostSerializer(serializers.ModelSerializer):
     # Optional nice representations:
-    author = serializers.StringRelatedField(read_only=True)  # shows username if __str__ on User
-    # If you have M2M tags or FK category and want IDs instead, you can omit the two lines below.
-    # tags = serializers.SlugRelatedField(slug_field="name", many=True, read_only=True)
-    # category = serializers.SlugRelatedField(slug_field="name", read_only=True)
+    author = serializers.StringRelatedField(read_only=True)
 
     class Meta:
         model = Post

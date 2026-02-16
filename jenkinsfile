@@ -45,7 +45,7 @@ pipeline {
             echo "✅ Deployment Successful! Image pushed as $IMAGE_NAME:$BUILD_NUMBER"
         }
         failure {
-            echo "❌ Pipeline Failed. Please check logs for reasons."
+            echo "❌ Pipeline Failed. Please check logs okay?."
         }
     }
 }

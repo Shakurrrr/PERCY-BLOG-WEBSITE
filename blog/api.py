@@ -1,4 +1,4 @@
-# blog/api.py
+# blog/api.py for modification of the API endpoint for the Me view
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
